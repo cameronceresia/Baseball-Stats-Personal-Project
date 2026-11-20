@@ -1,0 +1,37 @@
+---
+title: "Fastball Velocity and Whiff Rate Among MLB Starters"
+author: "Cam Ceresia"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+library(tidyverse)
+
+newstats <- read.csv("/Users/cameronceresia/Documents/Stats & R Code/Personal Projects/newstats.csv")
+starters <- newstats |> filter(p_starting_p >= 5)
+pe <- starters |> mutate(p_effect = p_swinging_strike / p_total_strike)
+
+fit <- lm(p_effect ~ fastball_avg_speed, data = pe)
+b  <- coef(fit)[["fastball_avg_speed"]]
+ci <- confint(fit)["fastball_avg_speed", ]
+r2 <- summary(fit)$r.squared
+```
+## Hypothesis
+I hypothesized that pitchers with slower fastball speed would need to have better control if they wanted to stay in the league compared to faster pitchers.
+
+## Data
+When selecting the pitchers that fit the criteria, I chose starting pitchers with at least 5 starts so that we could get starting pitchers who were able to stay in the league. This made us pull from around 600 pitchers from MLB. The outcome shows that my hypothesis was incorrect because pitchers with higher velocity actually had a more positive relationship with effectiveness. We can predict that MLB pitchers with higher velocity will have better pitching effectiveness than pitchers with lower velocity. 
+```{r plot, fig.width=6, fig.height=4.5}
+ggplot(pe, aes(x = fastball_avg_speed, y = p_effect)) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "lm") +
+  labs(x = "Average fastball velocity (mph)",
+       y = "Swinging strikes per strike")
+```
+
+## Limitations
+Pitchers who throw slowly and aren’t effective tend not to last in the league, so the data may leave out the weakest slow throwers. This could skew the relationship between velocity and whiffs. Fastball velocity is not the only factor. For example, the speed difference between a pitcher’s fastball and off-speed pitches can also generate swings and misses, and this analysis doesn’t account for it. Velocity explains only about 25% of the variation in whiff rate, so it is useful but limited as a predictor on its own. Many pitchers sit far from the trend line, so velocity alone can’t reliably predict an individual pitcher’s whiff rate.
+
+## Conclusion
+My results disproved my hypothesis: pitchers with faster fastballs tended to get a higher share of swinging strikes. This makes sense because a faster pitch gives hitters less time to react, which likely makes contact harder. For a coach or analyst, the takeaway is that between two otherwise similar pitchers, the one with the higher fastball velocity can be expected to get more whiffs on average. However, because velocity explains only about a quarter of the variation, it should be considered alongside other factors like location and off-speed pitches, not on its own.
